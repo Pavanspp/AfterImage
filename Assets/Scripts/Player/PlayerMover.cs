@@ -14,31 +14,28 @@ public class PlayerMover : MonoBehaviour
     // ───────────────────────────────────────────
 
     [Header("Movement")]
-    public float moveSpeed = 12f;
-    public float jumpForce = 14f;
+    public float moveSpeed    = 10f;
+    public float acceleration = 60f;   // how fast we reach moveSpeed on ground
+    public float deceleration = 80f;   // how fast we stop on ground when no input
+    public float airAcceleration = 30f; // steering force in air — less than ground
     int facing = 1;
 
-    [Header("Air Control")]
-    public float airAcceleration = 20f;
+    [Header("Jump Feel")]
+    public float jumpForce        = 15f;
+    public float coyoteTime       = 0.1f;
+    public float jumpBufferTime   = 0.1f;
+    public float jumpCutMultiplier = 0.4f;
+
+    [Header("Wall Jump")]
+    public float wallJumpForceX = 10f;
+    public float wallJumpForceY = 14f;
 
     [Header("Ground Check")]
     public Transform groundCheck;
     public LayerMask groundLayer;
 
-    [Header("Ground Movement Decay")]
-    public float momentumDecayRate = 10f;
-
-    [Header("Jump Feel")]
-    public float coyoteTime = 0.1f;
-    public float jumpBufferTime = 0.1f;
-    [Tooltip("On early jump release, vertical velocity is multiplied by this. " +
-             "0.4 = short hop is 40% of full jump height. Lower = snappier short hop.")]
-    public float jumpCutMultiplier = 0.4f;
-
-    [Header("Wall Jump")]
+    [Header("Wall Check")]
     public LayerMask wallLayer;
-    public float wallJumpForceX = 15f;
-    public float wallJumpForceY = 15f;
 
     [Header("Respawn")]
     public Transform spawnPoint;
@@ -48,26 +45,16 @@ public class PlayerMover : MonoBehaviour
     // PRIVATE STATE
     // ───────────────────────────────────────────
     float moveX;
-
     float coyoteTimer;
     float jumpBufferTimer;
-
-    bool isOnWall;
-    int  wallDirection;
-
+    bool  isOnWall;
+    int   wallDirection;
+    bool  wasGrounded;
+    bool  isJumping;
     float baseGravity;
-    float airSpeed;
-    float preservedMax;
-    bool  wasGrounded = false;
 
-    // Tracks whether we're in an active jump that can still be cut
-    bool isJumping = false;
-
-    // Wall check constants — calibrated for 1x1 square collider
     const float WallCheckOffset = 0.55f;
     const float WallCheckRadius = 0.2f;
-
-    // Ground check constants — box wider than circle to catch platform edges reliably
     static readonly Vector2 GroundCheckSize = new Vector2(0.8f, 0.1f);
 
     // ───────────────────────────────────────────
@@ -76,23 +63,21 @@ public class PlayerMover : MonoBehaviour
 
     void Awake()
     {
-        rb    = GetComponent<Rigidbody2D>();
-        input = GetComponent<PlayerInputReader>();
-        state = GetComponent<PlayerStateHub>();
-
-        baseGravity  = rb.gravityScale;
-        preservedMax = moveSpeed;
+        rb          = GetComponent<Rigidbody2D>();
+        input       = GetComponent<PlayerInputReader>();
+        state       = GetComponent<PlayerStateHub>();
+        baseGravity = rb.gravityScale;
     }
 
-    // ---------------------------
-    // UPDATE (INPUT)
-    // ---------------------------
+    // ───────────────────────────────────────────
+    // UPDATE — input reads, jump cut, death floor
+    // ───────────────────────────────────────────
+
     void Update()
     {
-        Vector2 move = input.Move;
-        float mag  = Mathf.Clamp01(move.magnitude);
-        float xDir = Mathf.Sign(move.x);
-        moveX = xDir * mag;
+        // Horizontal input — binary left/right, no analog ramping
+        float rawX = input.Move.x;
+        moveX = rawX > 0.01f ? 1f : rawX < -0.01f ? -1f : 0f;
 
         if (moveX != 0)
         {
@@ -100,12 +85,11 @@ public class PlayerMover : MonoBehaviour
             transform.localScale = new Vector3(facing, 1f, 1f);
         }
 
-        // JUMP BUFFER
+        // Jump buffer + immediate wall jump check on press
         if (input.JumpPressedThisFrame)
         {
             jumpBufferTimer = jumpBufferTime;
 
-            // Fresh physics queries — not stale from last FixedUpdate
             bool grounded  = Physics2D.OverlapBox(groundCheck.position, GroundCheckSize, 0f, groundLayer);
             bool wallRight = Physics2D.OverlapCircle(transform.position + Vector3.right * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
             bool wallLeft  = Physics2D.OverlapCircle(transform.position + Vector3.left  * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
@@ -117,122 +101,68 @@ public class PlayerMover : MonoBehaviour
             }
         }
 
-        // VARIABLE JUMP HEIGHT — cut velocity on early release
-        // Only applies while rising from a normal jump (not wall jump)
+        // Variable jump height — cut on early release
         if (input.JumpReleasedThisFrame && isJumping && rb.linearVelocity.y > 0f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
             isJumping = false;
         }
 
-        // DEATH FLOOR
+        // Death floor
         if (transform.position.y < deathFloorY)
             Respawn();
     }
 
-    // ---------------------------
-    // FIXED UPDATE (PHYSICS)
-    // ---------------------------
+    // ───────────────────────────────────────────
+    // FIXED UPDATE — physics
+    // ───────────────────────────────────────────
+
     void FixedUpdate()
     {
         jumpBufferTimer -= Time.fixedDeltaTime;
 
-        // ---- GROUND CHECK ----
+        // ── Ground check ──
         bool isGrounded = Physics2D.OverlapBox(groundCheck.position, GroundCheckSize, 0f, groundLayer);
-
-        // Clear isJumping once we land so the cut can't fire on the next jump's takeoff frame
         if (isGrounded) isJumping = false;
 
-        // ---- WALL DETECTION ----
-        bool touchingWallRight = Physics2D.OverlapCircle(
-            transform.position + Vector3.right * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
-        bool touchingWallLeft = Physics2D.OverlapCircle(
-            transform.position + Vector3.left  * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
+        // ── Wall detection ──
+        bool wallRight = Physics2D.OverlapCircle(transform.position + Vector3.right * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
+        bool wallLeft  = Physics2D.OverlapCircle(transform.position + Vector3.left  * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
 
-        if (!isGrounded && touchingWallRight)
-        {
-            isOnWall      = true;
-            wallDirection = 1;
-        }
-        else if (!isGrounded && touchingWallLeft)
-        {
-            isOnWall      = true;
-            wallDirection = -1;
-        }
-        else
-        {
-            isOnWall = false;
-        }
+        if      (!isGrounded && wallRight) { isOnWall = true;  wallDirection =  1; }
+        else if (!isGrounded && wallLeft)  { isOnWall = true;  wallDirection = -1; }
+        else                               { isOnWall = false;                     }
 
-        // ---- WALL JUMP — buffer fires when touching wall (pre-press case) ----
+        // Wall jump buffer — pre-press before touching wall
         if (isOnWall && jumpBufferTimer > 0f)
             DoWallJump();
 
-        // ---- MOMENTUM SYSTEM ----
-        float currentSpeed = Mathf.Abs(rb.linearVelocity.x);
-
-        if (!isGrounded)
-            airSpeed = rb.linearVelocity.x;
-
-        if (isGrounded && !wasGrounded)
-            preservedMax = Mathf.Max(preservedMax, Mathf.Abs(airSpeed));
-
-        wasGrounded = isGrounded;
-
-        if (isGrounded && currentSpeed < moveSpeed * 0.4f)
-            preservedMax = Mathf.MoveTowards(preservedMax, moveSpeed, (momentumDecayRate * 4f) * Time.fixedDeltaTime);
-        else if (Mathf.Abs(moveX) > 0.1f && Mathf.Sign(rb.linearVelocity.x) != Mathf.Sign(moveX))
-            preservedMax = Mathf.MoveTowards(preservedMax, moveSpeed, (momentumDecayRate * 3f) * Time.fixedDeltaTime);
-        else
-            preservedMax = Mathf.MoveTowards(preservedMax, moveSpeed, momentumDecayRate * Time.fixedDeltaTime);
-
-        // ---- COYOTE TIME ----
+        // ── Coyote time ──
         if (isGrounded) coyoteTimer = coyoteTime;
         else            coyoteTimer -= Time.fixedDeltaTime;
 
-        // ---- GROUND MOVEMENT ----
+        wasGrounded = isGrounded;
+
+        // ── Horizontal movement ──
+        float vx     = rb.linearVelocity.x;
+        float target = moveX * moveSpeed;
+
         if (isGrounded)
         {
-            float vx       = rb.linearVelocity.x;
-            float accel    = 80f;
-            float brake    = 120f;
-            float friction = 25f;
-            float target   = moveX * preservedMax;
-
             if (Mathf.Abs(moveX) > 0.01f)
-            {
-                if (Mathf.Abs(vx) <= Mathf.Abs(preservedMax))
-                    vx = Mathf.MoveTowards(vx, target, accel * Time.fixedDeltaTime);
-                else if (Mathf.Sign(vx) == Mathf.Sign(moveX))
-                    vx = Mathf.MoveTowards(vx, target, friction * Time.fixedDeltaTime);
-                else
-                    vx = Mathf.MoveTowards(vx, target, brake * Time.fixedDeltaTime);
-            }
+                vx = Mathf.MoveTowards(vx, target, acceleration * Time.fixedDeltaTime);
             else
-            {
-                vx = Mathf.MoveTowards(vx, 0f, friction * Time.fixedDeltaTime);
-            }
-
-            rb.linearVelocity = new Vector2(vx, rb.linearVelocity.y);
+                vx = Mathf.MoveTowards(vx, 0f, deceleration * Time.fixedDeltaTime);
         }
-        // ---- AIR MOVEMENT ----
         else
         {
-            float vx    = rb.linearVelocity.x;
-            float steer = airAcceleration * Time.fixedDeltaTime;
-
             if (Mathf.Abs(moveX) > 0.01f)
-            {
-                if (Mathf.Abs(vx) < moveSpeed)
-                    vx = Mathf.MoveTowards(vx, moveX * moveSpeed, steer);
-                else if (Mathf.Sign(moveX) != Mathf.Sign(vx))
-                    vx = Mathf.MoveTowards(vx, moveX * moveSpeed, steer);
-            }
-
-            rb.linearVelocity = new Vector2(vx, rb.linearVelocity.y);
+                vx = Mathf.MoveTowards(vx, target, airAcceleration * Time.fixedDeltaTime);
         }
 
-        // ---- JUMP ----
+        rb.linearVelocity = new Vector2(vx, rb.linearVelocity.y);
+
+        // ── Jump ──
         if (!isOnWall && jumpBufferTimer > 0f && coyoteTimer > 0f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -241,7 +171,6 @@ public class PlayerMover : MonoBehaviour
             isJumping         = true;
         }
 
-        // ---- UPDATE STATE HUB ----
         UpdateStateHub(isGrounded);
     }
 
@@ -255,7 +184,7 @@ public class PlayerMover : MonoBehaviour
         jumpBufferTimer   = 0f;
         coyoteTimer       = 0f;
         isOnWall          = false;
-        isJumping         = false; // wall jumps are not cuttable
+        isJumping         = false; // wall jumps not cuttable
     }
 
     // ───────────────────────────────────────────
@@ -264,6 +193,7 @@ public class PlayerMover : MonoBehaviour
 
     void Respawn()
     {
+        state.RaiseDeath();              // notify all listeners first
         transform.position = spawnPoint.position;
         rb.linearVelocity  = Vector2.zero;
         isOnWall           = false;
@@ -272,7 +202,7 @@ public class PlayerMover : MonoBehaviour
     }
 
     public void TeleportTo(Vector2 position)
-    {
+    {       
         transform.position = position;
         rb.linearVelocity  = Vector2.zero;
         isJumping          = false;
@@ -297,10 +227,10 @@ public class PlayerMover : MonoBehaviour
         state.Facing     = facing;
         state.IsGrounded = isGrounded;
 
-        if (isOnWall)                                        state.AnimState = "WallSlide";
-        else if (!isGrounded)                                state.AnimState = "Jump";
-        else if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)    state.AnimState = "Run";
-        else                                                 state.AnimState = "Idle";
+        if (isOnWall)                                     state.AnimState = "WallSlide";
+        else if (!isGrounded)                             state.AnimState = "Jump";
+        else if (Mathf.Abs(rb.linearVelocity.x) > 0.1f) state.AnimState = "Run";
+        else                                              state.AnimState = "Idle";
     }
 
     // ───────────────────────────────────────────

@@ -1,13 +1,11 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// Controls echo visual appearance based on state.
-/// Lives on the Echo GameObject (needs a SpriteRenderer).
-///
-/// Following: semi-transparent, blue/purple tint, ghost trail
-/// Frozen: full opacity, pale blue/white, glow outline feel
-/// </summary>
+// Controls echo visual appearance based on state.
+// Lives on the Echo GameObject (needs a SpriteRenderer).
+//
+// Following: semi-transparent, blue/purple tint, ghost trail
+// Frozen: full opacity, pale blue/white, glow outline feel
 public class EchoVisuals : MonoBehaviour
 {
     [Header("References")]
@@ -78,9 +76,7 @@ public class EchoVisuals : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Set visuals to Following state.
-    /// </summary>
+    // Set visuals to Following state.
     public void SetFollowing()
     {
         if (!isFlashing)
@@ -88,34 +84,20 @@ public class EchoVisuals : MonoBehaviour
         trailTimer = 0f;
     }
 
-    /// <summary>
-    /// Set visuals to Frozen state with scale punch.
-    /// </summary>
+    // Set visuals to Frozen state with scale punch.
     public void SetFrozen()
     {
         echoRenderer.color = frozenColor;
 
-        // Scale punch
         if (scaleCoroutine != null) StopCoroutine(scaleCoroutine);
         scaleCoroutine = StartCoroutine(ScalePunchRoutine());
     }
 
-    /// <summary>
-    /// Brief red flash when an action is invalid (freeze-in-wall, swap-into-wall).
-    /// </summary>
+    // Brief red flash when an action is invalid (freeze-in-wall, teleport-into-wall).
     public void FlashInvalid()
     {
         if (flashCoroutine != null) StopCoroutine(flashCoroutine);
         flashCoroutine = StartCoroutine(FlashRoutine(invalidFlashColor, invalidFlashDuration));
-    }
-
-    /// <summary>
-    /// Flash for swap (white). Phase 2.
-    /// </summary>
-    public void FlashSwap()
-    {
-        if (flashCoroutine != null) StopCoroutine(flashCoroutine);
-        flashCoroutine = StartCoroutine(FlashRoutine(Color.white, 0.1f));
     }
 
     // --- Trail ---
@@ -172,7 +154,6 @@ public class EchoVisuals : MonoBehaviour
         float elapsed = 0f;
         float half = freezeScaleDuration * 0.5f;
 
-        // Punch out
         while (elapsed < half)
         {
             elapsed += Time.deltaTime;
@@ -181,7 +162,6 @@ public class EchoVisuals : MonoBehaviour
             yield return null;
         }
 
-        // Punch back
         elapsed = 0f;
         while (elapsed < half)
         {

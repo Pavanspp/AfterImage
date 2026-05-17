@@ -2,16 +2,14 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-/// <summary>
-/// Spawns fading, shrinking position stamps behind the player showing
-/// the path the echo is currently replaying toward.
-/// Lives on the Player GameObject.
-///
-/// State-aware:
-///   Following + buffer ready    → stamps spawn and age normally
-///   Following + buffer charging → stamps spawn at reduced opacity
-///   Frozen                      → no new stamps, all existing stamps cleared instantly
-/// </summary>
+// Spawns fading, shrinking position stamps behind the player showing
+// the path the echo is currently replaying toward.
+// Lives on the Player GameObject.
+//
+// State-aware:
+//   Following + buffer ready    → stamps spawn and age normally
+//   Following + buffer charging → stamps spawn at reduced opacity
+//   Frozen                      → no new stamps, all existing stamps cleared instantly
 public class PlayerPathTrail : MonoBehaviour
 {
     [Header("References")]
@@ -68,7 +66,7 @@ public class PlayerPathTrail : MonoBehaviour
 
     void SpawnStamp()
     {
-        float lifetime = echoReplayer != null ? echoReplayer.echoDelaySeconds : 3f;
+        float lifetime = echoReplayer != null ? echoReplayer.echoDelaySeconds : 1.2f;
 
         // Use dimmer color while buffer is still charging
         Color color = (echoReplayer != null && !echoReplayer.IsBufferReady)
@@ -93,7 +91,7 @@ public class PlayerPathTrail : MonoBehaviour
 
     IEnumerator AgeStamp(GameObject stamp, SpriteRenderer sr, float lifetime, Color startColor)
     {
-        // ── Fade IN briefly so stamps don't pop at full alpha on spawn ──
+        // Fade IN briefly so stamps don't pop at full alpha on spawn
         float fadeInDuration = 0.05f;
         float fadeInElapsed  = 0f;
         while (fadeInElapsed < fadeInDuration)
@@ -106,7 +104,7 @@ public class PlayerPathTrail : MonoBehaviour
             yield return null;
         }
 
-        // ── Age and fade OUT ──
+        // Age and fade OUT
         // Hold near full opacity for the first 50% of lifetime so the oldest
         // stamps (where the echo currently IS) stay readable for planning.
         // Sharp drop only in the final 50%.

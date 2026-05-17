@@ -10,12 +10,12 @@ public class PlayerInputReader : MonoBehaviour
 
     public event Action OnJumpPressed;
     public event Action OnFreezePressed;
-    public event Action OnSwapPressed;
+    public event Action OnTeleportPressed;
 
-    public bool JumpPressedThisFrame   { get; private set; }
-    public bool JumpReleasedThisFrame  { get; private set; }
-    public bool FreezePressedThisFrame { get; private set; }
-    public bool SwapPressedThisFrame   { get; private set; }
+    public bool JumpPressedThisFrame     { get; private set; }
+    public bool JumpReleasedThisFrame    { get; private set; }
+    public bool FreezePressedThisFrame   { get; private set; }
+    public bool TeleportPressedThisFrame { get; private set; }
 
     void Awake()
     {
@@ -29,13 +29,13 @@ public class PlayerInputReader : MonoBehaviour
     {
         Move = controls.Player.Move.ReadValue<Vector2>();
 
-        JumpPressedThisFrame   = controls.Player.Jump.WasPressedThisFrame();
-        JumpReleasedThisFrame  = controls.Player.Jump.WasReleasedThisFrame();
-        FreezePressedThisFrame = controls.Player.Freeze.WasPressedThisFrame();
-        SwapPressedThisFrame   = controls.Player.Swap.WasPressedThisFrame();
+        JumpPressedThisFrame     = controls.Player.Jump.WasPressedThisFrame();
+        JumpReleasedThisFrame    = controls.Player.Jump.WasReleasedThisFrame();
+        FreezePressedThisFrame   = controls.Player.Freeze.WasPressedThisFrame();
+        TeleportPressedThisFrame = controls.Player.Swap.WasPressedThisFrame();
 
-        if (JumpPressedThisFrame)   OnJumpPressed?.Invoke();
-        if (FreezePressedThisFrame) OnFreezePressed?.Invoke();
-        if (SwapPressedThisFrame)   OnSwapPressed?.Invoke();
+        if (JumpPressedThisFrame)     OnJumpPressed?.Invoke();
+        if (FreezePressedThisFrame)   OnFreezePressed?.Invoke();
+        if (TeleportPressedThisFrame) OnTeleportPressed?.Invoke();
     }
 }

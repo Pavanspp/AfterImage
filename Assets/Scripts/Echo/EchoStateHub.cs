@@ -6,10 +6,8 @@ public enum EchoState
     Frozen
 }
 
-/// <summary>
-/// Shared echo state. Lives on the Echo GameObject.
-/// EchoController writes state, other echo components read it.
-/// </summary>
+// Shared echo state. Lives on the Echo GameObject.
+// EchoController writes state, other echo components read it.
 public class EchoStateHub : MonoBehaviour
 {
     [Header("Runtime State (read-only in Inspector)")]

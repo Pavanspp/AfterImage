@@ -1,18 +1,13 @@
 using UnityEngine;
 
-/// <summary>
-/// Core echo state machine. Handles Freeze (toggle) and Swap.
-/// Lives on the Echo GameObject.
-///
-/// Freeze behaviour:
-///   Following → Frozen: lock echo at current replayed position, enable collider
-///   Frozen → Following: teleport echo to player, clear buffer, disable collider
-///
-/// Swap behaviour:
-///   Teleport player to echo's current position. Echo is completely untouched —
-///   no state change, no buffer clear, keeps doing exactly what it was doing.
-///   If echo was Frozen: teleport player there AND unfreeze the echo.
-/// </summary>
+// Core echo state machine. Handles Freeze (toggle) and Teleport.
+// Lives on the Echo GameObject.
+//
+// Freeze:   Following → Frozen: lock echo, enable collider
+//           Frozen → Following: snap echo to player, clear buffer, disable collider
+//
+// Teleport: Move player to echo's position. Echo untouched if Following.
+//           If Frozen: teleport player there and unfreeze.
 public class EchoController : MonoBehaviour
 {
     [Header("References — Echo")]
@@ -30,8 +25,12 @@ public class EchoController : MonoBehaviour
     [Tooltip("Layer mask for geometry checks (walls + ground).")]
     public LayerMask solidLayers;
 
-    [Tooltip("Size of the OverlapBox used for freeze and swap safety checks.")]
+    [Tooltip("Size of the OverlapBox used for freeze and teleport safety checks.")]
     public Vector2 checkSize = new Vector2(0.9f, 0.9f);
+
+    [Header("Teleport Cooldown")]
+    public float teleportCooldown = 1f;
+    float teleportCooldownTimer;
 
     // ───────────────────────────────────────────
     // FREEZE
@@ -52,7 +51,7 @@ public class EchoController : MonoBehaviour
 
         Collider2D overlap = Physics2D.OverlapBox(
             (Vector2)transform.position, checkSize, 0f, solidLayers);
-        if (overlap != null)
+        if (overlap != null && overlap != echoCollider)
         {
             visuals.FlashInvalid();
             return;
@@ -73,29 +72,55 @@ public class EchoController : MonoBehaviour
     }
 
     // ───────────────────────────────────────────
-    // SWAP
+    // TELEPORT
     // ───────────────────────────────────────────
 
-    /// <summary>
-    /// Teleport the player to the echo's current position.
-    /// If echo is Following: echo is untouched, keeps replaying.
-    /// If echo is Frozen: teleport player there and unfreeze.
-    /// </summary>
-    public void Swap()
+    void Update()
     {
+        if (teleportCooldownTimer > 0f)
+            teleportCooldownTimer -= Time.deltaTime;
+    }
+
+    void OnEnable()
+    {
+        playerState.OnDeath += HandlePlayerDeath;
+    }
+
+    void OnDisable()
+    {
+        playerState.OnDeath -= HandlePlayerDeath;
+    }
+
+    void HandlePlayerDeath()
+    {
+        if (echoState.State == EchoState.Frozen)
+            Unfreeze();
+    }
+
+    // Teleport the player to the echo's current position.
+    // If echo is Following: echo is untouched, keeps replaying.
+    // If echo is Frozen: teleport player there and unfreeze.
+    public void Teleport()
+    {
+        if (teleportCooldownTimer > 0f)
+        {
+            visuals.FlashInvalid();
+            return;
+        }
+
         Vector2 echoPos = (Vector2)transform.position;
 
-        // Safety: cancel if player would land inside solid geometry
+        // Cancel if player would land inside solid geometry
         Collider2D overlap = Physics2D.OverlapBox(echoPos, checkSize, 0f, solidLayers);
-        if (overlap != null)
+        if (overlap != null && overlap != echoCollider)
         {
             visuals.FlashInvalid();
             return;
         }
 
         playerMover.TeleportTo(echoPos);
+        teleportCooldownTimer = teleportCooldown;
 
-        // If frozen, unfreeze now that the player has arrived
         if (echoState.State == EchoState.Frozen)
             Unfreeze();
     }

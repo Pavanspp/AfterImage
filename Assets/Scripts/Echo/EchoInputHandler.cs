@@ -1,9 +1,7 @@
 using UnityEngine;
 
-/// <summary>
-/// Bridges input events from PlayerInputReader to EchoController.
-/// Lives on the Player GameObject (same as PlayerInputReader).
-/// </summary>
+// Bridges input events from PlayerInputReader to EchoController.
+// Lives on the Player GameObject (same as PlayerInputReader).
 public class EchoInputHandler : MonoBehaviour
 {
     [Header("References")]
@@ -18,16 +16,16 @@ public class EchoInputHandler : MonoBehaviour
 
     void OnEnable()
     {
-        input.OnFreezePressed += HandleFreeze;
-        input.OnSwapPressed   += HandleSwap;
+        input.OnFreezePressed    += HandleFreeze;
+        input.OnTeleportPressed  += HandleTeleport;
     }
 
     void OnDisable()
     {
-        input.OnFreezePressed -= HandleFreeze;
-        input.OnSwapPressed   -= HandleSwap;
+        input.OnFreezePressed    -= HandleFreeze;
+        input.OnTeleportPressed  -= HandleTeleport;
     }
 
-    void HandleFreeze() => echoController.ToggleFreeze();
-    void HandleSwap()   => echoController.Swap();
+    void HandleFreeze()   => echoController.ToggleFreeze();
+    void HandleTeleport() => echoController.Teleport();
 }
