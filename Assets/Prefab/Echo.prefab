@@ -204,10 +204,13 @@ MonoBehaviour:
   echoCollider: {fileID: 3969800934830417818}
   playerState: {fileID: 0}
   playerMover: {fileID: 0}
+  teleportVisuals: {fileID: 0}
+  zoneState: {fileID: 0}
   solidLayers:
     serializedVersion: 2
     m_Bits: 576
   checkSize: {x: 0.9, y: 0.9}
+  teleportCooldown: 3
 --- !u!114 &352222206703331881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,8 +226,8 @@ MonoBehaviour:
   echoRenderer: {fileID: 4900393555456151600}
   echoState: {fileID: 2041057144470707010}
   replayer: {fileID: 6030464978152008653}
-  followingColor: {r: 0.6, g: 0.7, b: 1, a: 0.4}
-  frozenColor: {r: 0.85, g: 0.9, b: 1, a: 1}
+  followingColor: {r: 0.6, g: 0.7019608, b: 1, a: 0.4}
+  frozenColor: {r: 0.6, g: 0.7019608, b: 1, a: 1}
   invalidFlashColor: {r: 1, g: 0.3, b: 0.3, a: 0.6}
   invalidFlashDuration: 0.15
   enableGhostTrail: 1

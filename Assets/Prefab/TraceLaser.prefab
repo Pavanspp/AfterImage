@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8893741838953105498
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6973740250915221275}
+  - component: {fileID: 6308796716504276227}
+  m_Layer: 0
+  m_Name: TraceLaser
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6973740250915221275
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8893741838953105498}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 23.92, y: 15.96, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6308796716504276227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8893741838953105498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 520eb05dc0705af46864678e8224ce51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TraceLaser
+  fireDirection: 1
+  sweepDistance: 30
+  sweepSpeed: 10
+  innerWidth: 0.05
+  outerWidth: 0.25
+  innerColor: {r: 1, g: 1, b: 0.9, a: 1}
+  outerColor: {r: 1, g: 0.15, b: 0.1, a: 0.6}
+  solidLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  maxLaserLength: 50
+  emitterSize: 0.3
+  emitterColor: {r: 1, g: 0.3, b: 0.2, a: 1}

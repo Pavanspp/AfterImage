@@ -48,6 +48,9 @@ GameObject:
   - component: {fileID: 3592663039751901408}
   - component: {fileID: 2644583205020931011}
   - component: {fileID: 4509376669606035538}
+  - component: {fileID: -280138272072760210}
+  - component: {fileID: -4291387520382315295}
+  - component: {fileID: -9189932786549270122}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -121,7 +124,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.5, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -172,7 +175,7 @@ MonoBehaviour:
   moveSpeed: 8
   acceleration: 60
   deceleration: 80
-  airAcceleration: 15
+  airAcceleration: 17
   jumpForce: 15
   coyoteTime: 0.1
   jumpBufferTime: 0.1
@@ -186,8 +189,8 @@ MonoBehaviour:
   wallLayer:
     serializedVersion: 2
     m_Bits: 128
-  spawnPoint: {fileID: 0}
   deathFloorY: -20
+  deathDelay: 0.6
 --- !u!61 &6470337260647144391
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -297,3 +300,74 @@ MonoBehaviour:
   pulseNewest: 1
   pulseSpeed: 4
   pulseAmount: 0.08
+--- !u!114 &-280138272072760210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7224024413697202335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 450ca4f94c7208a49a4347f144cb09bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDeathVisual
+  playerRenderer: {fileID: 1242904047154717501}
+  playerState: {fileID: 3592663039751901408}
+  fragmentCount: 12
+  fragmentSpeed: 6
+  fragmentDuration: 0.55
+  fragmentSize: 0.12
+  fragmentColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &-4291387520382315295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7224024413697202335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7df0677980aa1f49b84e8d25e4ad6ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeleportVisuals
+  playerRenderer: {fileID: 1242904047154717501}
+  afterimageColor: {r: 0.6, g: 0.7, b: 1, a: 0.7}
+  afterimageDuration: 0.25
+  streakColor: {r: 0.7, g: 0.85, b: 1, a: 0.45}
+  streakDuration: 0.18
+  streakThickness: 0.035
+  beamRingColor: {r: 0.6, g: 0.8, b: 1, a: 0.5}
+  beamRingCount: 5
+  beamRingSize: 3
+  beamRingDuration: 0.3
+  beamRingDepthRatio: 0.3
+  departureRingColor: {r: 0.6, g: 0.7, b: 1, a: 0.45}
+  departureRingSize: 0.5
+  departureRingDuration: 0.2
+  innerRingColor: {r: 0.85, g: 0.92, b: 1, a: 0.85}
+  outerRingColor: {r: 0.6, g: 0.7, b: 1, a: 0.3}
+  innerRingSize: 0.9
+  outerRingSize: 1.4
+  innerRingDuration: 0.3
+  outerRingDuration: 0.45
+  punchScale: 1.4
+  punchDuration: 0.1
+--- !u!114 &-9189932786549270122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7224024413697202335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3be8e00fc610e54fb2f85c8392bcd4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ZoneStateTracker
+  isInsideMomentumZone: 0
+  hasKineticFreezeCharge: 0
+  isInsideKineticZone: 0
+  hasEchoSplitCharge: 0
+  isInsideEchoSplitZone: 0
+  hasMomentumCharge: 0

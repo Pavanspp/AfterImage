@@ -1,29 +1,24 @@
 using UnityEngine;
+using System.Collections;
 
 public class PlayerMover : MonoBehaviour
 {
-    // ───────────────────────────────────────────
-    // REFERENCES
-    // ───────────────────────────────────────────
     Rigidbody2D rb;
     PlayerInputReader input;
     PlayerStateHub state;
-
-    // ───────────────────────────────────────────
-    // INSPECTOR FIELDS
-    // ───────────────────────────────────────────
+    PlayerPathTrail pathTrail;
 
     [Header("Movement")]
-    public float moveSpeed    = 10f;
-    public float acceleration = 60f;   // how fast we reach moveSpeed on ground
-    public float deceleration = 80f;   // how fast we stop on ground when no input
-    public float airAcceleration = 30f; // steering force in air — less than ground
+    public float moveSpeed       = 10f;
+    public float acceleration    = 60f;
+    public float deceleration    = 80f;
+    public float airAcceleration = 30f;
     int facing = 1;
 
     [Header("Jump Feel")]
-    public float jumpForce        = 15f;
-    public float coyoteTime       = 0.1f;
-    public float jumpBufferTime   = 0.1f;
+    public float jumpForce         = 15f;
+    public float coyoteTime        = 0.1f;
+    public float jumpBufferTime    = 0.1f;
     public float jumpCutMultiplier = 0.4f;
 
     [Header("Wall Jump")]
@@ -38,12 +33,9 @@ public class PlayerMover : MonoBehaviour
     public LayerMask wallLayer;
 
     [Header("Respawn")]
-    public Transform spawnPoint;
-    public float deathFloorY = -20f;
+    public float deathFloorY = -25f;
+    public float deathDelay  = 0.6f;
 
-    // ───────────────────────────────────────────
-    // PRIVATE STATE
-    // ───────────────────────────────────────────
     float moveX;
     float coyoteTimer;
     float jumpBufferTimer;
@@ -52,30 +44,38 @@ public class PlayerMover : MonoBehaviour
     bool  wasGrounded;
     bool  isJumping;
     float baseGravity;
+    bool  isDead;
 
     const float WallCheckOffset = 0.55f;
     const float WallCheckRadius = 0.2f;
     static readonly Vector2 GroundCheckSize = new Vector2(0.8f, 0.1f);
 
-    // ───────────────────────────────────────────
-    // LIFECYCLE
-    // ───────────────────────────────────────────
+    // ── Moving platform state ──
+    // Standard approach: parent the player to the platform while standing on it.
+    // When leaving, add the platform's velocity to the rigidbody so momentum carries.
+    Transform currentPlatform;
+    Transform originalParent;
+    Vector2   platformVelocity;
+    Vector3   lastPlatformPos;
 
     void Awake()
     {
-        rb          = GetComponent<Rigidbody2D>();
-        input       = GetComponent<PlayerInputReader>();
-        state       = GetComponent<PlayerStateHub>();
-        baseGravity = rb.gravityScale;
+        rb             = GetComponent<Rigidbody2D>();
+        input          = GetComponent<PlayerInputReader>();
+        state          = GetComponent<PlayerStateHub>();
+        pathTrail      = GetComponent<PlayerPathTrail>();
+        baseGravity    = rb.gravityScale;
+        originalParent = transform.parent; // null in most scenes, that's fine
     }
 
     // ───────────────────────────────────────────
-    // UPDATE — input reads, jump cut, death floor
+    // UPDATE
     // ───────────────────────────────────────────
 
     void Update()
     {
-        // Horizontal input — binary left/right, no analog ramping
+        if (isDead) return;
+
         float rawX = input.Move.x;
         moveX = rawX > 0.01f ? 1f : rawX < -0.01f ? -1f : 0f;
 
@@ -85,7 +85,6 @@ public class PlayerMover : MonoBehaviour
             transform.localScale = new Vector3(facing, 1f, 1f);
         }
 
-        // Jump buffer + immediate wall jump check on press
         if (input.JumpPressedThisFrame)
         {
             jumpBufferTimer = jumpBufferTime;
@@ -101,31 +100,32 @@ public class PlayerMover : MonoBehaviour
             }
         }
 
-        // Variable jump height — cut on early release
         if (input.JumpReleasedThisFrame && isJumping && rb.linearVelocity.y > 0f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
             isJumping = false;
         }
 
-        // Death floor
         if (transform.position.y < deathFloorY)
-            Respawn();
+            TriggerDeath();
     }
 
     // ───────────────────────────────────────────
-    // FIXED UPDATE — physics
+    // FIXED UPDATE
     // ───────────────────────────────────────────
 
     void FixedUpdate()
     {
+        if (isDead) return;
+
         jumpBufferTimer -= Time.fixedDeltaTime;
 
-        // ── Ground check ──
         bool isGrounded = Physics2D.OverlapBox(groundCheck.position, GroundCheckSize, 0f, groundLayer);
         if (isGrounded) isJumping = false;
 
-        // ── Wall detection ──
+        // ── Moving platform detection ──
+        UpdatePlatformCarry(isGrounded);
+
         bool wallRight = Physics2D.OverlapCircle(transform.position + Vector3.right * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
         bool wallLeft  = Physics2D.OverlapCircle(transform.position + Vector3.left  * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
 
@@ -133,17 +133,14 @@ public class PlayerMover : MonoBehaviour
         else if (!isGrounded && wallLeft)  { isOnWall = true;  wallDirection = -1; }
         else                               { isOnWall = false;                     }
 
-        // Wall jump buffer — pre-press before touching wall
         if (isOnWall && jumpBufferTimer > 0f)
             DoWallJump();
 
-        // ── Coyote time ──
         if (isGrounded) coyoteTimer = coyoteTime;
         else            coyoteTimer -= Time.fixedDeltaTime;
 
         wasGrounded = isGrounded;
 
-        // ── Horizontal movement ──
         float vx     = rb.linearVelocity.x;
         float target = moveX * moveSpeed;
 
@@ -162,7 +159,6 @@ public class PlayerMover : MonoBehaviour
 
         rb.linearVelocity = new Vector2(vx, rb.linearVelocity.y);
 
-        // ── Jump ──
         if (!isOnWall && jumpBufferTimer > 0f && coyoteTimer > 0f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
@@ -175,6 +171,60 @@ public class PlayerMover : MonoBehaviour
     }
 
     // ───────────────────────────────────────────
+    // MOVING PLATFORM CARRY
+    // ───────────────────────────────────────────
+
+    void UpdatePlatformCarry(bool isGrounded)
+    {
+        if (isGrounded)
+        {
+            // Check if the ground collider we're standing on is the echo
+            Collider2D groundHit = Physics2D.OverlapBox(
+                groundCheck.position, GroundCheckSize, 0f, groundLayer);
+
+            if (groundHit != null && groundHit.CompareTag("Echo"))
+            {
+                // Mount the platform — parent player to echo transform
+                if (currentPlatform != groundHit.transform)
+                {
+                    currentPlatform  = groundHit.transform;
+                    lastPlatformPos  = currentPlatform.position;
+                    transform.SetParent(currentPlatform);
+                }
+
+                // Track velocity by measuring how far the platform moved this frame
+                Vector3 delta    = currentPlatform.position - lastPlatformPos;
+                platformVelocity = delta / Time.fixedDeltaTime;
+                lastPlatformPos  = currentPlatform.position;
+            }
+            else
+            {
+                // Landed on normal ground — leave platform without inheriting velocity
+                // (walking off edge shouldn't give a sudden horizontal kick)
+                LeavePlatform(inherit: false);
+            }
+        }
+        else
+        {
+            // Went airborne — unparent and inherit platform velocity so jump carries momentum
+            LeavePlatform(inherit: true);
+        }
+    }
+
+    void LeavePlatform(bool inherit)
+    {
+        if (currentPlatform == null) return;
+
+        transform.SetParent(originalParent);
+
+        if (inherit && platformVelocity.sqrMagnitude > 0.01f)
+            rb.linearVelocity += platformVelocity;
+
+        currentPlatform  = null;
+        platformVelocity = Vector2.zero;
+    }
+
+    // ───────────────────────────────────────────
     // WALL JUMP
     // ───────────────────────────────────────────
 
@@ -184,37 +234,63 @@ public class PlayerMover : MonoBehaviour
         jumpBufferTimer   = 0f;
         coyoteTimer       = 0f;
         isOnWall          = false;
-        isJumping         = false; // wall jumps not cuttable
+        isJumping         = false;
     }
 
     // ───────────────────────────────────────────
-    // RESPAWN / TELEPORT
+    // DEATH / RESPAWN
     // ───────────────────────────────────────────
 
     void Respawn()
     {
-        state.RaiseDeath();              // notify all listeners first
-        transform.position = spawnPoint.position;
-        rb.linearVelocity  = Vector2.zero;
-        isOnWall           = false;
-        isJumping          = false;
-        rb.gravityScale    = baseGravity;
+        if (isDead) return;
+        isDead = true;
+
+        // Unparent from any platform before death so the scene reload is clean
+        if (currentPlatform != null)
+        {
+            transform.SetParent(originalParent);
+            currentPlatform = null;
+        }
+
+        state.RaiseDeath();
+        StartCoroutine(RespawnAfterDelay());
     }
 
+    IEnumerator RespawnAfterDelay()
+    {
+        rb.linearVelocity = Vector2.zero;
+        rb.bodyType       = RigidbodyType2D.Kinematic;
+
+        yield return new WaitForSeconds(deathDelay);
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.RestartLevel();
+    }
+
+    public void TriggerDeath() => Respawn();
+
     public void TeleportTo(Vector2 position)
-    {       
+    {
+        // Unparent from any platform before teleporting
+        if (currentPlatform != null)
+        {
+            transform.SetParent(originalParent);
+            currentPlatform  = null;
+            platformVelocity = Vector2.zero;
+        }
+
         transform.position = position;
         rb.linearVelocity  = Vector2.zero;
         isJumping          = false;
     }
 
-    public void SetSpawnPoint(Transform newSpawn) { spawnPoint = newSpawn; }
-
-    void OnTriggerEnter2D(Collider2D other)
+    public void SetVelocity(Vector2 vel)
     {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Hazard"))
-            Respawn();
+        rb.linearVelocity = vel;
     }
+
+    public void SetSpawnPoint(Transform newSpawn) { }
 
     // ───────────────────────────────────────────
     // STATE HUB

@@ -2,8 +2,6 @@ using UnityEngine;
 
 // Auto-wires all cross-GameObject references on scene load.
 // Lives on a SceneLinker GameObject in every scene.
-// Finds Player, Echo, and Camera by tag at Awake and connects everything.
-// No manual Inspector wiring needed for cross-references.
 public class SceneLinker : MonoBehaviour
 {
     [Header("Tags — must match GameObject tags in scene")]
@@ -22,10 +20,12 @@ public class SceneLinker : MonoBehaviour
         if (cameraGO == null) { Debug.LogError("SceneLinker: No GameObject tagged 'MainCamera' found."); return; }
 
         // ── Grab all components ──
-        PlayerStateHub      playerState  = playerGO.GetComponent<PlayerStateHub>();
-        PlayerMover         playerMover  = playerGO.GetComponent<PlayerMover>();
-        PlayerPathTrail     pathTrail    = playerGO.GetComponent<PlayerPathTrail>();
-        EchoInputHandler    echoInput    = playerGO.GetComponent<EchoInputHandler>();
+        PlayerStateHub      playerState     = playerGO.GetComponent<PlayerStateHub>();
+        PlayerMover         playerMover     = playerGO.GetComponent<PlayerMover>();
+        PlayerPathTrail     pathTrail       = playerGO.GetComponent<PlayerPathTrail>();
+        EchoInputHandler    echoInput       = playerGO.GetComponent<EchoInputHandler>();
+        TeleportVisuals     teleportVisuals = playerGO.GetComponent<TeleportVisuals>();
+        ZoneStateTracker    zoneTracker     = playerGO.GetComponent<ZoneStateTracker>();
 
         EchoStateHub        echoState    = echoGO.GetComponent<EchoStateHub>();
         EchoRecordingBuffer echoBuffer   = echoGO.GetComponent<EchoRecordingBuffer>();
@@ -48,6 +48,11 @@ public class SceneLinker : MonoBehaviour
         echoCtrl.echoCollider    = echoGO.GetComponent<BoxCollider2D>();
         echoCtrl.playerState     = playerState;
         echoCtrl.playerMover     = playerMover;
+        echoCtrl.teleportVisuals = teleportVisuals;
+
+        // ── Wire zone state tracker ──
+        if (zoneTracker != null)
+            echoCtrl.zoneState = zoneTracker;
 
         echoVisuals.echoRenderer = echoGO.GetComponent<SpriteRenderer>();
         echoVisuals.echoState    = echoState;
