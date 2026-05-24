@@ -26,16 +26,19 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Confined;
     }
 
     // Called by LevelExit when the player reaches the goal.
     public void CompleteLevel()
     {
         int nextIndex = currentLevelIndex + 1;
-
+        
         if (nextIndex >= sceneList.levels.Length)
         {
-            levelLoader.LoadScene(sceneList.levels[currentLevelIndex]);
+            levelLoader.LoadScene("LevelSelect");
             return;
         }
 

@@ -1,9 +1,8 @@
 using UnityEngine;
 
-// Sweeping laser hazard with raycast-based length — stops on terrain.
-// Emitter can fire in any direction, sweeps perpendicular to fire axis.
-// Place emitter on wall/ceiling/floor, set FireDirection toward the room.
-// Requires: LayerMask set to your ground/wall layer for raycast hits.
+// Sweeping laser hazard with BoxCast-based length — stops on terrain.
+// Uses a thick BoxCast (outerWidth) so the laser can't clip past the
+// edge of a blocker (frozen echo) by floating point margins.
 public class TraceLaser : MonoBehaviour
 {
     public enum FireDirection { Left, Right, Up, Down }
@@ -33,7 +32,6 @@ public class TraceLaser : MonoBehaviour
     [Header("State")]
     public bool startsActive = true;
 
-    // Internal
     LineRenderer innerLine;
     LineRenderer outerLine;
     BoxCollider2D laserCollider;
@@ -137,7 +135,6 @@ public class TraceLaser : MonoBehaviour
         return sr;
     }
 
-    // On/off control
     public void SetActive(bool active)
     {
         isActive = active;
@@ -146,7 +143,6 @@ public class TraceLaser : MonoBehaviour
         outerLine.gameObject.SetActive(active);
         laserCollider.gameObject.SetActive(active);
 
-        // Dim or brighten emitter core
         if (emitterCoreSR != null)
             emitterCoreSR.color = active ? emitterColor : emitterDimColor;
     }
@@ -172,8 +168,20 @@ public class TraceLaser : MonoBehaviour
     {
         Vector3 origin = transform.position;
 
-        RaycastHit2D hit = Physics2D.Raycast(
-            origin, fireVec, maxLaserLength, solidLayers);
+        // BoxCast thickness matches outerWidth so the cast can't clip past
+        // a blocker's edge before also clearing anything at the same height.
+        // A 1x1 blocker (frozen echo) and a 1x1 player at the same Y:
+        // the cast clears the blocker top at the same moment it clears the player top.
+        bool isHorizontal = fireDirection == FireDirection.Left
+                         || fireDirection == FireDirection.Right;
+
+        Vector2 castSize = isHorizontal
+            ? new Vector2(outerWidth, outerWidth)
+            : new Vector2(outerWidth, outerWidth);
+
+        RaycastHit2D hit = Physics2D.BoxCast(
+            origin, castSize, 0f,
+            fireVec, maxLaserLength, solidLayers);
 
         Vector3 endpoint = hit.collider != null
             ? (Vector3)hit.point
@@ -188,9 +196,6 @@ public class TraceLaser : MonoBehaviour
 
         Vector3 colliderCenter = origin + fireVec * (laserLength * 0.5f);
         laserCollider.transform.position = colliderCenter;
-
-        bool isHorizontal = fireDirection == FireDirection.Left
-                         || fireDirection == FireDirection.Right;
 
         laserCollider.size = isHorizontal
             ? new Vector2(laserLength, innerWidth * 2f)

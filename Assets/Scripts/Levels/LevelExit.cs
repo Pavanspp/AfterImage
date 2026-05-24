@@ -1,13 +1,5 @@
 using UnityEngine;
-
-// Place this on the goal zone trigger at the end of a level.
-// When the player enters the trigger, CompleteLevel is called.
-//
-// Setup:
-//   - Add a GameObject with this script
-//   - Add a BoxCollider2D or CircleCollider2D, check "Is Trigger"
-//   - Set its Layer to Default (or a dedicated GoalZone layer)
-//   - The player must be on a layer that collides with this trigger
+// Level Exit — triggers level completion when player enters.
 public class LevelExit : MonoBehaviour
 {
     [Header("Goal Zone")]

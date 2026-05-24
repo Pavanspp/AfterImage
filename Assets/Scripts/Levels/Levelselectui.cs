@@ -28,6 +28,9 @@ public class LevelSelectUI : MonoBehaviour
 
     void Start()
     {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.Confined;
+
         if (FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
         {
             GameObject es = new GameObject("EventSystem");

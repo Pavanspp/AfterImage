@@ -66,8 +66,10 @@ public class PauseMenu : MonoBehaviour
     {
         if (overlay != null)
             overlay.SetActive(visible);
-    }
 
+        Cursor.visible = visible;
+        Cursor.lockState = visible ? CursorLockMode.Confined : CursorLockMode.Confined;
+    }
     void BuildOverlay()
     {
         // Canvas

@@ -32,6 +32,17 @@ public abstract class ZoneBase : MonoBehaviour
         OnPlayerExit();
     }
 
+    void OnDrawGizmos()
+    {
+        BoxCollider2D col = GetComponent<BoxCollider2D>();
+        if (col == null) return;
+
+        Gizmos.color = new Color(0f, 1f, 0.8f, 0.3f);
+        Gizmos.DrawWireCube(transform.position + (Vector3)col.offset, 
+                            new Vector3(col.size.x * transform.lossyScale.x, 
+                                        col.size.y * transform.lossyScale.y, 0));
+    }
+
     protected abstract void OnPlayerEnter();
     protected abstract void OnPlayerExit();
 }

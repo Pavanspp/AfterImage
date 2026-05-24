@@ -210,7 +210,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 576
   checkSize: {x: 0.9, y: 0.9}
-  teleportCooldown: 3
+  teleportCooldown: 2
 --- !u!114 &352222206703331881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -236,4 +236,10 @@ MonoBehaviour:
   trailColor: {r: 0.5, g: 0.6, b: 1, a: 0.25}
   freezeScalePunch: 1.3
   freezeScaleDuration: 0.12
+  unfreezeColor: {r: 0.6, g: 0.75, b: 1, a: 0.8}
+  unfreezeFragCount: 8
+  unfreezeFragSpeed: 4
+  unfreezeFragDuration: 0.35
+  unfreezeFragSize: 0.15
+  fadeInDuration: 0.3
   chargingColor: {r: 0.4, g: 0.4, b: 0.6, a: 0.2}
