@@ -1,18 +1,5 @@
 using UnityEngine;
 
-// Core echo state machine. Handles Freeze (toggle) and Teleport.
-// Lives on the Echo GameObject.
-//
-// Freeze:   Following → Frozen: lock echo, enable collider
-//           Frozen → Following: snap echo to player, clear buffer, disable collider
-//           Inside Kinetic Freeze Zone: frozen echo inherits velocity and slides until hitting geometry
-//
-// Teleport: Move player to echo's position. Echo untouched if Following.
-//           If Frozen: teleport player there and unfreeze.
-//           If inside Momentum Zone: redirect player velocity to echo's direction.
-//
-// NOTE: Moving platform carry is handled by PlayerMover (parenting approach),
-//       NOT here. EchoController only moves the echo.
 public class EchoController : MonoBehaviour
 {
     [Header("References — Echo")]
@@ -49,10 +36,6 @@ public class EchoController : MonoBehaviour
     // Public read-only for PlayerMover platform detection
     public bool IsKineticSliding => isKineticSliding;
     public Vector2 KineticVelocity => kineticVelocity;
-
-    // ───────────────────────────────────────────
-    // LIFECYCLE
-    // ───────────────────────────────────────────
 
     void Awake()
     {
@@ -104,10 +87,6 @@ public class EchoController : MonoBehaviour
         transform.position = nextPos;
     }
 
-    // ───────────────────────────────────────────
-    // FREEZE
-    // ───────────────────────────────────────────
-
     public void ToggleFreeze()
     {
         if (echoState.State == EchoState.Following)
@@ -132,7 +111,6 @@ public class EchoController : MonoBehaviour
         echoCollider.enabled = true;
         visuals.SetFrozen();
 
-        // Kinetic Freeze Zone — inside-only.
         if (zoneState != null && zoneState.isInsideKineticZone)
         {
             Vector2 slideVelocity = replayer.LastReadFrame.velocity;
@@ -162,10 +140,6 @@ public class EchoController : MonoBehaviour
         visuals.PlayUnfreeze(frozenPos);
     }
 
-    // ───────────────────────────────────────────
-    // TELEPORT
-    // ───────────────────────────────────────────
-
     public void Teleport()
     {
         if (!replayer.IsBufferReady)
@@ -193,7 +167,6 @@ public class EchoController : MonoBehaviour
 
         playerMover.TeleportTo(echoPos);
 
-        // Momentum Zone — only active while physically inside the zone
         if (zoneState != null && zoneState.isInsideMomentumZone)
         {
             float speed = playerState.Velocity.magnitude;

@@ -1,9 +1,5 @@
 using UnityEngine;
 
-// Shared player state. Lives on the Player GameObject.
-// Other systems (EchoRecordingBuffer, EchoReplayer, etc.) read from this
-// without needing a reference to PlayerMover internals.
-// Updated by PlayerMover each FixedUpdate.
 public class PlayerStateHub : MonoBehaviour
 {
     public Vector2 Position   { get; set; }

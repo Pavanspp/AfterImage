@@ -1,5 +1,4 @@
 using UnityEngine;
-// Level Exit — triggers level completion when player enters.
 public class LevelExit : MonoBehaviour
 {
     [Header("Goal Zone")]

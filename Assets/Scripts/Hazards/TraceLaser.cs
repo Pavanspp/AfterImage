@@ -1,8 +1,5 @@
 using UnityEngine;
 
-// Sweeping laser hazard with BoxCast-based length — stops on terrain.
-// Uses a thick BoxCast (outerWidth) so the laser can't clip past the
-// edge of a blocker (frozen echo) by floating point margins.
 public class TraceLaser : MonoBehaviour
 {
     public enum FireDirection { Left, Right, Up, Down }
@@ -168,10 +165,6 @@ public class TraceLaser : MonoBehaviour
     {
         Vector3 origin = transform.position;
 
-        // BoxCast thickness matches outerWidth so the cast can't clip past
-        // a blocker's edge before also clearing anything at the same height.
-        // A 1x1 blocker (frozen echo) and a 1x1 player at the same Y:
-        // the cast clears the blocker top at the same moment it clears the player top.
         bool isHorizontal = fireDirection == FireDirection.Left
                          || fireDirection == FireDirection.Right;
 

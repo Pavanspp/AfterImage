@@ -1,13 +1,6 @@
 using UnityEngine;
 using System.Collections;
 
-// Controls echo visual appearance based on state.
-// Lives on the Echo GameObject (needs a SpriteRenderer).
-//
-// Following: semi-transparent, blue/purple tint, ghost trail
-// Frozen: full opacity, pale blue/white, glow outline feel
-// Unfreeze: dissolve burst at frozen position before snapping away
-// Buffer ready: smooth fade-in over 0.3s instead of instant pop
 public class EchoVisuals : MonoBehaviour
 {
     [Header("References")]
@@ -127,19 +120,12 @@ public class EchoVisuals : MonoBehaviour
         }
     }
 
-    // ───────────────────────────────────────────
-    // STATE VISUALS
-    // ───────────────────────────────────────────
-
     public void SetFollowing()
     {
         if (!isFlashing)
             echoRenderer.color = followingColor;
         trailTimer = 0f;
 
-        // Reset fade-in state for fresh buffer after unfreeze
-        // (hasEverBeenReady stays true so it won't re-fade on unfreeze,
-        //  only on scene load when the object is fresh)
     }
 
     public void SetFrozen()
@@ -160,10 +146,6 @@ public class EchoVisuals : MonoBehaviour
     {
         echoRenderer.enabled = !hidden;
     }
-
-    // ───────────────────────────────────────────
-    // UNFREEZE DISSOLVE
-    // ───────────────────────────────────────────
 
     public void PlayUnfreeze(Vector3 worldPos)
     {
@@ -256,15 +238,11 @@ public class EchoVisuals : MonoBehaviour
         if (frag != null) Destroy(frag);
     }
 
-    // ───────────────────────────────────────────
-    // GHOST TRAIL
-    // ───────────────────────────────────────────
-
     void SpawnTrailGhost()
     {
         GameObject ghost = new GameObject("EchoTrail");
         ghost.transform.position   = transform.position;
-        ghost.transform.localScale = new Vector3(1f, 1f, 1f); // never copy echo's localScale
+        ghost.transform.localScale = new Vector3(1f, 1f, 1f);
 
         SpriteRenderer sr   = ghost.AddComponent<SpriteRenderer>();
         sr.sprite           = echoRenderer.sprite;
@@ -289,10 +267,6 @@ public class EchoVisuals : MonoBehaviour
         }
         if (obj != null) Destroy(obj);
     }
-
-    // ───────────────────────────────────────────
-    // FLASH / SCALE PUNCH
-    // ───────────────────────────────────────────
 
     IEnumerator FlashRoutine(Color flashColor, float duration)
     {

@@ -1,9 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// Procedural electric arc effect with branching and metal emitters.
-// Use Vertical toggle for vertical orientation — no rotation needed.
-// Requires: BoxCollider2D (IsTrigger, Hazard layer) + Hazard.cs
 public class StaticCharge : MonoBehaviour
 {
     [Header("Visual")]
@@ -72,8 +69,6 @@ public class StaticCharge : MonoBehaviour
         isActive = startsActive;
         if (!isActive) SetActive(false);
     }
-
-    // ── Arcs ────────────────────────────────────────────────────────────
 
     void BuildAllArcs()
     {
@@ -181,8 +176,6 @@ public class StaticCharge : MonoBehaviour
         }
     }
 
-    // ── Emitters ─────────────────────────────────────────────────────────
-
     void BuildEmitters()
     {
         if (vertical)
@@ -207,37 +200,30 @@ public class StaticCharge : MonoBehaviour
             ? new Vector3(col.offset.x, localEdge, 0f)
             : new Vector3(localEdge, col.offset.y, 0f);
 
-        // Horizontal emitter: narrow+tall. Vertical emitter: wide+short.
         float eW = vertical ? Mathf.Min(emitterHeight, col.size.x) : emitterWidth;
         float eH = vertical ? emitterWidth : Mathf.Min(emitterHeight, col.size.y);
 
-        // Inward highlight offset toward center of field
         float inwardX = vertical ? 0f : (isSecond ? -emitterWidth * 0.4f :  emitterWidth * 0.4f);
         float inwardY = vertical ? (isSecond ? -emitterWidth * 0.4f : emitterWidth * 0.4f) : 0f;
 
-        // Body
         CreateEmitterRect(root, "Body",
             Vector3.zero, new Vector3(eW, eH, 1f),
             new Color(0.15f, 0.08f, 0.12f, 1f), 5);
 
-        // Core — tracked for dimming
         SpriteRenderer coreSR = CreateEmitterRect(root, "Core",
             Vector3.zero, new Vector3(eW * 0.25f, eH * 0.85f, 1f),
             new Color(emitterColor.r, emitterColor.g, emitterColor.b, 0.9f), 7);
         emitterCoreRenderers.Add(coreSR);
 
-        // Edge highlight
         CreateEmitterRect(root, "EdgeHighlight",
             new Vector3(inwardX, inwardY, 0f),
             new Vector3(vertical ? eW : eW * 0.08f, vertical ? eH * 0.08f : eH, 1f),
             new Color(1f, 0.7f, 0.85f, 0.8f), 8);
 
-        // Glow
         CreateEmitterRect(root, "Glow",
             Vector3.zero, new Vector3(eW * 2.5f, eH * 0.6f, 1f),
             new Color(emitterColor.r, emitterColor.g, emitterColor.b, 0.08f), 4);
 
-        // Rivets — run along the long axis
         int rivetCount = Mathf.Max(2, Mathf.RoundToInt((vertical ? eW : eH) * 2f));
         for (int r = 0; r < rivetCount; r++)
         {
@@ -252,8 +238,6 @@ public class StaticCharge : MonoBehaviour
                 new Color(0.9f, 0.5f, 0.7f, 1f), 9);
         }
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────
 
     SpriteRenderer CreateEmitterRect(GameObject parent, string name, Vector3 localPos, Vector3 scale, Color color, int sortOrder)
     {
@@ -299,8 +283,6 @@ public class StaticCharge : MonoBehaviour
         return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
     }
 
-    // ── On/Off ───────────────────────────────────────────────────────────
-
     public void SetActive(bool active)
     {
         isActive    = active;
@@ -323,8 +305,6 @@ public class StaticCharge : MonoBehaviour
 
     public void TurnOn()  => SetActive(true);
     public void TurnOff() => SetActive(false);
-
-    // ── Update ───────────────────────────────────────────────────────────
 
     void Update()
     {

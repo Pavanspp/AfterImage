@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Auto-wires all cross-GameObject references on scene load.
-// Lives on a SceneLinker GameObject in every scene.
 public class SceneLinker : MonoBehaviour
 {
     [Header("Tags — must match GameObject tags in scene")]
@@ -19,7 +17,6 @@ public class SceneLinker : MonoBehaviour
         if (echoGO   == null) { Debug.LogError("SceneLinker: No GameObject tagged 'Echo' found.");   return; }
         if (cameraGO == null) { Debug.LogError("SceneLinker: No GameObject tagged 'MainCamera' found."); return; }
 
-        // ── Grab all components ──
         PlayerStateHub      playerState     = playerGO.GetComponent<PlayerStateHub>();
         PlayerMover         playerMover     = playerGO.GetComponent<PlayerMover>();
         PlayerPathTrail     pathTrail       = playerGO.GetComponent<PlayerPathTrail>();
@@ -35,7 +32,6 @@ public class SceneLinker : MonoBehaviour
 
         CameraFollow2D      cam          = cameraGO.GetComponent<CameraFollow2D>();
 
-        // ── Wire Echo components ──
         echoBuffer.playerState   = playerState;
 
         echoReplayer.buffer      = echoBuffer;
@@ -50,7 +46,6 @@ public class SceneLinker : MonoBehaviour
         echoCtrl.playerMover     = playerMover;
         echoCtrl.teleportVisuals = teleportVisuals;
 
-        // ── Wire zone state tracker ──
         if (zoneTracker != null)
             echoCtrl.zoneState = zoneTracker;
 
@@ -58,13 +53,11 @@ public class SceneLinker : MonoBehaviour
         echoVisuals.echoState    = echoState;
         echoVisuals.replayer     = echoReplayer;
 
-        // ── Wire Player components that need Echo ──
         pathTrail.echoReplayer   = echoReplayer;
         pathTrail.echoState      = echoState;
 
         echoInput.echoController = echoCtrl;
 
-        // ── Wire Camera ──
         cam.target = playerGO.transform;
 
         Debug.Log("SceneLinker: All references wired successfully.");

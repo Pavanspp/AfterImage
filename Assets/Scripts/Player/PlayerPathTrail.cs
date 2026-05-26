@@ -2,15 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-// Spawns fading, shrinking position stamps behind the player showing
-// the path the echo is currently replaying toward.
-// Lives on the Player GameObject.
-//
-// State-aware:
-//   Following + buffer ready    → stamps spawn and age normally
-//   Following + buffer charging → stamps spawn at reduced opacity
-//   Frozen                      → no new stamps, all existing stamps cleared instantly
-//   Death                       → all stamps cleared instantly, no new stamps until respawn
 public class PlayerPathTrail : MonoBehaviour
 {
     [Header("References")]
@@ -35,7 +26,6 @@ public class PlayerPathTrail : MonoBehaviour
     public float pulseSpeed = 4f;
     public float pulseAmount = 0.08f;
 
-    // ── Internal ──
     float spawnTimer;
     GameObject newestStamp;
     bool isDead;

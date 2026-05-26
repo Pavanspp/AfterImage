@@ -3,8 +3,6 @@ using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
-// Handles fade to black and scene loading.
-// Lives on a LevelLoader GameObject in every scene alongside a Canvas.
 public class LevelLoader : MonoBehaviour
 {
     [Header("Fade")]
@@ -22,7 +20,6 @@ public class LevelLoader : MonoBehaviour
         StartCoroutine(FadeIn());
     }
 
-    // Fade to black then load the named scene.
     public void LoadScene(string sceneName)
     {
         StartCoroutine(FadeOutAndLoad(sceneName));

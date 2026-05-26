@@ -3,9 +3,6 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-// Level Select screen. Editorial typographic layout — no button borders,
-// large floating numbers, hover accent. Two sections: Basic and Experimental.
-// Entire UI built from code — no prefabs needed.
 public class LevelSelectUI : MonoBehaviour
 {
     [Header("References")]
@@ -100,10 +97,6 @@ public class LevelSelectUI : MonoBehaviour
         }
     }
 
-    // ───────────────────────────────────────────
-    // SECTION BUILDERS
-    // ───────────────────────────────────────────
-
     void AddLabel(Transform parent, string text, float size, Color color, float height, int letterSpacing = 0)
     {
         GameObject go = MakeElement("Lbl", parent);
@@ -165,7 +158,6 @@ public class LevelSelectUI : MonoBehaviour
         le.preferredWidth  = 80;
         le.preferredHeight = 80;
 
-        // Transparent background — no border, no box
         Image img = btn.AddComponent<Image>();
         img.color = new Color(0, 0, 0, 0);
 
@@ -198,10 +190,6 @@ public class LevelSelectUI : MonoBehaviour
         hover.hoverColor = accentColor;
     }
 
-    // ───────────────────────────────────────────
-    // LOAD
-    // ───────────────────────────────────────────
-
     void LoadLevel(string sceneName)
     {
         if (levelLoader != null)
@@ -209,10 +197,6 @@ public class LevelSelectUI : MonoBehaviour
         else
             SceneManager.LoadScene(sceneName);
     }
-
-    // ───────────────────────────────────────────
-    // HELPERS
-    // ───────────────────────────────────────────
 
     GameObject MakeElement(string name, Transform parent)
     {

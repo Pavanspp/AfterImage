@@ -2,9 +2,6 @@ using UnityEngine;
 using System.Collections;
 using TMPro;
 
-// Renders zone boundary visuals: two vertical edge lines, faint fill,
-// screen flash on entry, riddle text on first entry.
-// Text follows the player at an offset above while displayed.
 public class ZoneBoundaryVisual : MonoBehaviour
 {
     [Header("Zone Color")]
@@ -183,7 +180,6 @@ public class ZoneBoundaryVisual : MonoBehaviour
             yield return null;
         }
 
-        // Hold — Update() keeps text above player during this time
         yield return new WaitForSeconds(riddleDisplayDuration);
 
         // Fade out

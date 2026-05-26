@@ -1,8 +1,5 @@
 using UnityEngine;
 
-// Reads the recording buffer at a delay offset and drives the echo's
-// transform each FixedUpdate. Only active when echo is Following.
-// Lives on the Echo GameObject.
 public class EchoReplayer : MonoBehaviour
 {
     [Header("Delay Settings")]
@@ -13,13 +10,9 @@ public class EchoReplayer : MonoBehaviour
     public EchoRecordingBuffer buffer;
     public EchoStateHub echoState;
 
-    // --- Internal ---
     int delayFrames;
 
-    // Whether the buffer has enough frames to produce a valid replay position.
     public bool IsBufferReady { get; private set; }
-
-    // The last valid frame read from the buffer.
     public EchoFrame LastReadFrame { get; private set; }
 
     void Start()
@@ -48,7 +41,6 @@ public class EchoReplayer : MonoBehaviour
         }
     }
 
-    // Convert echoDelaySeconds to frame count. Called once in Start.
     void RecalculateDelayFrames()
     {
         delayFrames = Mathf.RoundToInt(echoDelaySeconds / Time.fixedDeltaTime);

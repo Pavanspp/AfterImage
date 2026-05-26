@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Bridges input events from PlayerInputReader to EchoController.
-// Lives on the Player GameObject (same as PlayerInputReader).
 public class EchoInputHandler : MonoBehaviour
 {
     [Header("References")]

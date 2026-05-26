@@ -50,9 +50,6 @@ public class PlayerMover : MonoBehaviour
     const float WallCheckRadius = 0.2f;
     static readonly Vector2 GroundCheckSize = new Vector2(0.8f, 0.1f);
 
-    // ── Moving platform state ──
-    // Standard approach: parent the player to the platform while standing on it.
-    // When leaving, add the platform's velocity to the rigidbody so momentum carries.
     Transform currentPlatform;
     Transform originalParent;
     Vector2   platformVelocity;
@@ -67,10 +64,6 @@ public class PlayerMover : MonoBehaviour
         baseGravity    = rb.gravityScale;
         originalParent = transform.parent; // null in most scenes, that's fine
     }
-
-    // ───────────────────────────────────────────
-    // UPDATE
-    // ───────────────────────────────────────────
 
     void Update()
     {
@@ -110,10 +103,6 @@ public class PlayerMover : MonoBehaviour
             TriggerDeath();
     }
 
-    // ───────────────────────────────────────────
-    // FIXED UPDATE
-    // ───────────────────────────────────────────
-
     void FixedUpdate()
     {
         if (isDead) return;
@@ -123,7 +112,6 @@ public class PlayerMover : MonoBehaviour
         bool isGrounded = Physics2D.OverlapBox(groundCheck.position, GroundCheckSize, 0f, groundLayer);
         if (isGrounded) isJumping = false;
 
-        // ── Moving platform detection ──
         UpdatePlatformCarry(isGrounded);
 
         bool wallRight = Physics2D.OverlapCircle(transform.position + Vector3.right * WallCheckOffset, WallCheckRadius, wallLayer | groundLayer);
@@ -170,21 +158,15 @@ public class PlayerMover : MonoBehaviour
         UpdateStateHub(isGrounded);
     }
 
-    // ───────────────────────────────────────────
-    // MOVING PLATFORM CARRY
-    // ───────────────────────────────────────────
-
     void UpdatePlatformCarry(bool isGrounded)
     {
         if (isGrounded)
         {
-            // Check if the ground collider we're standing on is the echo
             Collider2D groundHit = Physics2D.OverlapBox(
                 groundCheck.position, GroundCheckSize, 0f, groundLayer);
 
             if (groundHit != null && groundHit.CompareTag("Echo"))
             {
-                // Mount the platform — parent player to echo transform
                 if (currentPlatform != groundHit.transform)
                 {
                     currentPlatform  = groundHit.transform;
@@ -192,21 +174,17 @@ public class PlayerMover : MonoBehaviour
                     transform.SetParent(currentPlatform);
                 }
 
-                // Track velocity by measuring how far the platform moved this frame
                 Vector3 delta    = currentPlatform.position - lastPlatformPos;
                 platformVelocity = delta / Time.fixedDeltaTime;
                 lastPlatformPos  = currentPlatform.position;
             }
             else
             {
-                // Landed on normal ground — leave platform without inheriting velocity
-                // (walking off edge shouldn't give a sudden horizontal kick)
                 LeavePlatform(inherit: false);
             }
         }
         else
         {
-            // Went airborne — unparent and inherit platform velocity so jump carries momentum
             LeavePlatform(inherit: true);
         }
     }
@@ -224,10 +202,6 @@ public class PlayerMover : MonoBehaviour
         platformVelocity = Vector2.zero;
     }
 
-    // ───────────────────────────────────────────
-    // WALL JUMP
-    // ───────────────────────────────────────────
-
     void DoWallJump()
     {
         rb.linearVelocity = new Vector2(-wallDirection * wallJumpForceX, wallJumpForceY);
@@ -237,16 +211,11 @@ public class PlayerMover : MonoBehaviour
         isJumping         = false;
     }
 
-    // ───────────────────────────────────────────
-    // DEATH / RESPAWN
-    // ───────────────────────────────────────────
-
     void Respawn()
     {
         if (isDead) return;
         isDead = true;
 
-        // Unparent from any platform before death so the scene reload is clean
         if (currentPlatform != null)
         {
             transform.SetParent(originalParent);
@@ -272,7 +241,6 @@ public class PlayerMover : MonoBehaviour
 
     public void TeleportTo(Vector2 position)
     {
-        // Unparent from any platform before teleporting
         if (currentPlatform != null)
         {
             transform.SetParent(originalParent);
@@ -292,10 +260,6 @@ public class PlayerMover : MonoBehaviour
 
     public void SetSpawnPoint(Transform newSpawn) { }
 
-    // ───────────────────────────────────────────
-    // STATE HUB
-    // ───────────────────────────────────────────
-
     void UpdateStateHub(bool isGrounded)
     {
         state.Position   = rb.position;
@@ -309,17 +273,9 @@ public class PlayerMover : MonoBehaviour
         else                                              state.AnimState = "Idle";
     }
 
-    // ───────────────────────────────────────────
-    // PUBLIC GETTERS
-    // ───────────────────────────────────────────
-
     public bool IsGrounded => wasGrounded;
     public bool IsOnWall   => isOnWall;
     public int  Facing     => facing;
-
-    // ───────────────────────────────────────────
-    // GIZMOS
-    // ───────────────────────────────────────────
 
     void OnDrawGizmosSelected()
     {

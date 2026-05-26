@@ -4,11 +4,6 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.InputSystem;
 
-// In-level pause menu. Press Escape to toggle.
-// Resume: unpause and continue.
-// Level Select: load the LevelSelect scene via LevelLoader fade.
-// Lives on a persistent GameObject in every level scene.
-// Wire LevelLoader in Inspector.
 public class PauseMenu : MonoBehaviour
 {
     [Header("References")]
@@ -84,7 +79,6 @@ public class PauseMenu : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         canvasGO.AddComponent<GraphicRaycaster>();
 
-        // EventSystem — reuse if exists
         if (FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
         {
             GameObject es = new GameObject("EventSystem");
@@ -92,14 +86,12 @@ public class PauseMenu : MonoBehaviour
             es.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
         }
 
-        // Overlay panel
         overlay = new GameObject("PauseOverlay", typeof(RectTransform));
         overlay.transform.SetParent(canvasGO.transform, false);
         Image overlayImg = overlay.AddComponent<Image>();
         overlayImg.color = overlayColor;
         StretchFull(overlay.GetComponent<RectTransform>());
 
-        // Centered column
         GameObject col = MakeElement("Col", overlay.transform);
         RectTransform colRT = col.GetComponent<RectTransform>();
         colRT.anchorMin = new Vector2(0.5f, 0.5f);
@@ -113,13 +105,10 @@ public class PauseMenu : MonoBehaviour
         vlg.childForceExpandHeight = false;
         vlg.spacing = 16;
 
-        // "PAUSED" label
         AddText(col.transform, "PAUSED", 11, dimColor, 30f, 14);
 
-        // Resume button
         AddMenuButton(col.transform, "RESUME", textColor, hoverColor, () => Resume());
 
-        // Level Select button
         AddMenuButton(col.transform, "LEVEL SELECT", textColor, exitHoverColor, () => GoToLevelSelect());
     }
 
@@ -140,7 +129,6 @@ public class PauseMenu : MonoBehaviour
         GameObject go = MakeElement("Btn_" + label, parent);
         go.AddComponent<LayoutElement>().preferredHeight = 50;
 
-        // Transparent — text is the button
         Image img = go.AddComponent<Image>();
         img.color = new Color(0, 0, 0, 0);
 
@@ -163,7 +151,6 @@ public class PauseMenu : MonoBehaviour
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.fontStyle = FontStyles.Bold;
 
-        // Hover color
         PauseButtonHover h = go.AddComponent<PauseButtonHover>();
         h.label = tmp;
         h.normalColor = normal;
@@ -187,7 +174,6 @@ public class PauseMenu : MonoBehaviour
 
     void OnDestroy()
     {
-        // Always restore timescale if this object gets destroyed mid-pause
         Time.timeScale = 1f;
     }
 }

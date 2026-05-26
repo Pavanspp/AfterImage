@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Momentum Zone — modifies teleport to redirect velocity while inside.
-// Only active while player is physically inside the zone.
 public class MomentumZone : ZoneBase
 {
     ZoneBoundaryVisual visual;

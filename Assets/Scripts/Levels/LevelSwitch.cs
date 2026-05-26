@@ -1,9 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// A lever switch that toggles between two states when the player
-// touches it from either side. Flips visually and invokes events.
-// Place a BoxCollider2D (IsTrigger) on this GameObject.
 public class LevelSwitch : MonoBehaviour
 {
     [Header("Visual")]
@@ -35,7 +32,6 @@ public class LevelSwitch : MonoBehaviour
 
     void Start()
     {
-        // Fire after all Awakes have run — prevents null refs on other scripts
         if (isOn)
             OnActivate?.Invoke();
         else
@@ -44,7 +40,6 @@ public class LevelSwitch : MonoBehaviour
 
     void BuildVisual()
     {
-        // Base block
         GameObject basePart = new GameObject("SwitchBase");
         basePart.transform.SetParent(transform);
         basePart.transform.localPosition = new Vector3(0f, -leverHeight * 0.4f, 0f);
@@ -56,7 +51,6 @@ public class LevelSwitch : MonoBehaviour
         baseSR.sortingLayerName = "Default";
         baseSR.sortingOrder     = 5;
 
-        // Lever arm
         leverArm = new GameObject("LeverArm");
         leverArm.transform.SetParent(transform);
         leverArm.transform.localPosition = Vector3.zero;
@@ -68,7 +62,6 @@ public class LevelSwitch : MonoBehaviour
         leverSR.sortingLayerName = "Default";
         leverSR.sortingOrder     = 6;
 
-        // Knob at top of lever
         GameObject knob = new GameObject("LeverKnob");
         knob.transform.SetParent(leverArm.transform);
         knob.transform.localPosition = new Vector3(0f, 0.5f, 0f);

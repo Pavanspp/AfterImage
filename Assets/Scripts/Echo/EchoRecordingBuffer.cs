@@ -1,8 +1,5 @@
 using UnityEngine;
 
-// Fixed-size circular buffer that records player state every FixedUpdate.
-// O(1) read and write. Lives on the Echo GameObject.
-// Reads from PlayerStateHub on the Player.
 public class EchoRecordingBuffer : MonoBehaviour
 {
     [Header("Buffer Settings")]
@@ -12,7 +9,6 @@ public class EchoRecordingBuffer : MonoBehaviour
     [Header("References")]
     public PlayerStateHub playerState;
 
-    // --- Internal state ---
     EchoFrame[] buffer;
     int writeHead = 0;
     int frameCount = 0;
@@ -33,7 +29,6 @@ public class EchoRecordingBuffer : MonoBehaviour
         });
     }
 
-    // Write a frame to the buffer. Advances write head, wraps on overflow.
     private void Write(EchoFrame frame)
     {
         buffer[writeHead] = frame;
@@ -41,8 +36,6 @@ public class EchoRecordingBuffer : MonoBehaviour
         frameCount++;
     }
 
-    // Read a frame at a given delay (in frames) behind the write head.
-    // Returns false if the buffer doesn't have enough data yet (underflow).
     public bool TryReadAtDelay(int delayFrames, out EchoFrame frame)
     {
         if (delayFrames > bufferSize)
@@ -62,7 +55,6 @@ public class EchoRecordingBuffer : MonoBehaviour
         return true;
     }
 
-    // Clear the buffer. Used on unfreeze to reset echo history.
     public void Clear()
     {
         writeHead = 0;
@@ -72,11 +64,10 @@ public class EchoRecordingBuffer : MonoBehaviour
     public int BufferSize => bufferSize;
 }
 
-// One frame of recorded player state. Struct for value-type copies.
 public struct EchoFrame
 {
     public Vector2 position;
     public Vector2 velocity;
-    public int     facing;     // 1 or -1
-    public string  animState;  // "Run", "Jump", "Idle"
+    public int     facing;
+    public string  animState;
 }

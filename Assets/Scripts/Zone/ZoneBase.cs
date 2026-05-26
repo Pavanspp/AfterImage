@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Shared trigger logic for all zone types.
-// Subclasses implement OnPlayerEnter/OnPlayerExit.
 public abstract class ZoneBase : MonoBehaviour
 {
     public string playerTag = "Player";

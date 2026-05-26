@@ -1,9 +1,6 @@
 using UnityEngine;
 using System.Collections;
 
-// Plays a shatter effect on player death.
-// Lives on the Player GameObject.
-// Listens to PlayerStateHub.OnDeath and handles its own timing.
 public class PlayerDeathVisual : MonoBehaviour
 {
     [Header("References")]
@@ -47,7 +44,6 @@ public class PlayerDeathVisual : MonoBehaviour
         GameObject frag = new GameObject("DeathFrag");
         frag.transform.position = transform.position;
 
-        // random size variation
         float size = fragmentSize * Random.Range(0.6f, 1.4f);
         frag.transform.localScale = Vector3.one * size;
 
@@ -57,7 +53,6 @@ public class PlayerDeathVisual : MonoBehaviour
         sr.sortingLayerName = playerRenderer.sortingLayerName;
         sr.sortingOrder = playerRenderer.sortingOrder + 1;
 
-        // spread evenly in a circle with random variation
         float angle = (360f / fragmentCount) * index + Random.Range(-15f, 15f);
         float rad = angle * Mathf.Deg2Rad;
         Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
@@ -82,7 +77,6 @@ public class PlayerDeathVisual : MonoBehaviour
             frag.transform.position += (Vector3)(velocity * Time.deltaTime * (1f - t));
             frag.transform.Rotate(0f, 0f, velocity.magnitude * Time.deltaTime * 80f);
 
-            // Clamp to tiny positive value — never let scale reach zero
             float shrinkT    = Mathf.Clamp01((t - 0.4f) / 0.6f);
             float sizeScalar = Mathf.Max(0.001f, 1f - shrinkT);
             frag.transform.localScale = startScale * sizeScalar;
